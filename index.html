@@ -1,340 +1,302 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gioco Clicker - Trova il Cuore!</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trova Paola! – Gioco Clicker Divertente</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;
+    }
+    .container{ text-align:center; max-width:800px; width:90%; }
+    h1{ font-size:2.6em; margin-bottom:10px; text-shadow:2px 2px 4px rgba(0,0,0,.3); }
+    .instructions{
+      font-size:1.1em; margin-bottom:20px; background:rgba(255,255,255,.2);
+      padding:15px; border-radius:10px; backdrop-filter: blur(10px);
+    }
+    .scoreboard{
+      background:rgba(255,255,255,.2); padding:20px; border-radius:15px; margin-bottom:20px; backdrop-filter: blur(10px);
+      display:flex; gap:20px; justify-content:center; align-items:center; flex-wrap:wrap;
+    }
+    .score{ font-size:2em; font-weight:700; }
+    .timer{ font-size:1.4em; }
+    .combo{ font-size:1.1em; opacity:.9; }
+    .game-area{
+      position:relative; width:100%; height:460px; background:rgba(255,255,255,.1);
+      border-radius:20px; backdrop-filter: blur(10px); overflow:hidden; cursor:crosshair;
+    }
+    .target{
+      position:absolute; cursor:pointer; transition: transform .1s;
+      box-shadow:0 4px 15px rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center; font-size:40px;
+      background-repeat:no-repeat; touch-action:manipulation; animation:pop-in .18s ease-out both;
+    }
+    .target.heart{ border-radius:50%; background:#fff; }
+    .target.circle{ border-radius:50%; }
+    .target:hover{ transform: scale(1.08); }
+    .target:active{ transform: scale(.92); }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
+    @keyframes pop-in {
+      0% { transform: scale(.6); opacity:0; }
+      60% { transform: scale(1.1); opacity:1; }
+      100% { transform: scale(1); }
+    }
 
-        .container {
-            text-align: center;
-            max-width: 800px;
-            width: 90%;
-        }
+    .start-button{
+      margin-top:20px; padding:15px 40px; font-size:1.2em; background:#00d084; color:#1a1a1a; border:0; border-radius:50px; cursor:pointer;
+      transition: all .2s; box-shadow:0 4px 15px rgba(0,0,0,.3); font-weight:700;
+    }
+    .start-button:hover{ transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.4); }
+    .start-button:disabled{ background:#bbb; color:#444; cursor:not-allowed; transform:none; }
 
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
+    .game-over{
+      display:none; background:rgba(255,255,255,.96); color:#333; padding:28px; border-radius:20px; margin-top:18px;
+    }
+    .game-over h2{ color:#764ba2; margin-bottom:10px; }
+    .final-line{ font-size:1.1em; opacity:.85; }
 
-        .instructions {
-            font-size: 1.1em;
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
+    /* Particelle e cuori */
+    .particles{
+      position: fixed; pointer-events:none; font-size:28px; font-weight:800; z-index:1000;
+      animation: float-up 1s ease-out forwards;
+      text-shadow:0 2px 6px rgba(0,0,0,.25);
+    }
+    .penalty{ color:#ff5858; }
+    .bonus{ color:#FFD700; }
 
-        .scoreboard {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .score {
-            font-size: 2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .timer {
-            font-size: 1.5em;
-        }
-
-        .game-area {
-            position: relative;
-            width: 100%;
-            height: 450px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            overflow: hidden;
-            cursor: crosshair;
-        }
-
-        .target {
-            position: absolute;
-            cursor: pointer;
-            transition: transform 0.1s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-        }
-
-        .target.heart {
-            border-radius: 50%;
-            background: white;
-        }
-
-        .target.circle {
-            border-radius: 50%;
-        }
-
-        .target:hover {
-            transform: scale(1.1);
-        }
-
-        .target:active {
-            transform: scale(0.9);
-        }
-
-        .start-button {
-            margin-top: 20px;
-            padding: 15px 40px;
-            font-size: 1.2em;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .start-button:hover {
-            background: #45a049;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        }
-
-        .start-button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .game-over {
-            display: none;
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            padding: 30px;
-            border-radius: 20px;
-            margin-top: 20px;
-        }
-
-        .game-over h2 {
-            color: #667eea;
-            margin-bottom: 15px;
-        }
-
-        .particles {
-            position: fixed;
-            pointer-events: none;
-            font-size: 28px;
-            font-weight: bold;
-            animation: float-up 1s ease-out forwards;
-            z-index: 1000;
-        }
-
-        @keyframes float-up {
-            0% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-100px);
-            }
-        }
-
-        .penalty {
-            color: #ff4444;
-        }
-
-        .bonus {
-            color: #FFD700;
-        }
-    </style>
+    @keyframes float-up{
+      0%{ opacity:1; transform: translateY(0) scale(1); }
+      100%{ opacity:0; transform: translateY(-100px) scale(1.1); }
+    }
+    .heart-spark{
+      position: fixed; pointer-events:none; font-size:22px; z-index:1000; animation: spark 700ms ease-out forwards;
+      text-shadow:0 2px 6px rgba(0,0,0,.25);
+    }
+    @keyframes spark{
+      0%{ transform: translate(0,0) scale(.8); opacity:1; }
+      100%{ transform: translate(var(--dx), var(--dy)) scale(1.2); opacity:0; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎯 Trova il Cuore!</h1>
-        
-        <div class="instructions">
-            ⚠️ Clicca SOLO sul cuore ❤️ per guadagnare +10 punti!<br>
-            Gli altri cerchi colorati ti fanno perdere punti! ❌
-        </div>
+  <div class="container">
+    <h1>🎯 Trova Paola!</h1>
 
-        <div class="scoreboard">
-            <div class="score">Punteggio: <span id="score">0</span></div>
-            <div class="timer">Tempo: <span id="timer">45</span>s</div>
-        </div>
-
-        <div class="game-area" id="gameArea"></div>
-
-        <button class="start-button" id="startButton">Inizia Gioco</button>
-
-        <div class="game-over" id="gameOver">
-            <h2>🎉 Partita Finita!</h2>
-            <p style="font-size: 1.5em; margin: 15px 0;">Punteggio Finale: <strong id="finalScore">0</strong></p>
-            <p id="accuracy" style="margin: 10px 0; font-size: 1.1em;"></p>
-            <button class="start-button" onclick="location.reload()">Gioca Ancora</button>
-        </div>
+    <div class="instructions">
+      ⚠️ Clicca <strong>SOLO su Paola 😍</strong> per guadagnare <strong>+10 punti</strong>!<br/>
+      Gli altri cerchi colorati fanno perdere punti… ahia! ❌
     </div>
 
-    <script>
-        let score = 0;
-        let timeLeft = 45;
-        let gameActive = false;
-        let targetInterval;
-        let timerInterval;
-        let correctClicks = 0;
-        let wrongClicks = 0;
+    <div class="scoreboard">
+      <div class="score">Punteggio: <span id="score">0</span></div>
+      <div class="timer">Tempo: <span id="timer">45</span>s</div>
+      <div class="combo">Combo: <span id="combo">x1</span></div>
+    </div>
 
-        const gameArea = document.getElementById('gameArea');
-        const scoreDisplay = document.getElementById('score');
-        const timerDisplay = document.getElementById('timer');
-        const startButton = document.getElementById('startButton');
-        const gameOver = document.getElementById('gameOver');
-        const finalScore = document.getElementById('finalScore');
-        const accuracy = document.getElementById('accuracy');
+    <div class="game-area" id="gameArea"></div>
 
-        const distractorColors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
+    <button class="start-button" id="startButton">Inizia – Trova Paola!</button>
 
-        function createTarget() {
-            if (!gameActive) return;
+    <div class="game-over" id="gameOver">
+      <h2>🤣 Fine partita!</h2>
+      <p style="font-size:1.5em; margin: 12px 0;">Punteggio Finale: <strong id="finalScore">0</strong></p>
+      <p id="accuracy" class="final-line" style="margin: 8px 0;"></p>
+      <p id="funMsg" class="final-line" style="margin: 8px 0;"></p>
+      <button class="start-button" onclick="location.reload()">Gioca Ancora</button>
+    </div>
+  </div>
 
-            const target = document.createElement('div');
-            target.className = 'target';
-            
-            // 30% di probabilità che appaia il cuore giusto
-            const isCorrect = Math.random() < 0.3;
-            
-            const size = Math.random() * 40 + 50; // Dimensione tra 50 e 90px
-            
-            const maxX = gameArea.clientWidth - size;
-            const maxY = gameArea.clientHeight - size;
-            
-            const x = Math.random() * maxX;
-            const y = Math.random() * maxY;
-            
-            target.style.width = size + 'px';
-            target.style.height = size + 'px';
-            target.style.left = x + 'px';
-            target.style.top = y + 'px';
-            
-            if (isCorrect) {
-                // Cuore corretto
-                target.classList.add('heart');
-                target.textContent = '❤️';
-                
-                target.onclick = function(e) {
-                    if (!gameActive) return;
-                    
-                    score += 10;
-                    correctClicks++;
-                    scoreDisplay.textContent = score;
-                    
-                    createParticle('+10', e.clientX, e.clientY, 'bonus');
-                    
-                    target.remove();
-                };
-            } else {
-                // Cerchio distrattore
-                target.classList.add('circle');
-                const color = distractorColors[Math.floor(Math.random() * distractorColors.length)];
-                target.style.background = color;
-                
-                target.onclick = function(e) {
-                    if (!gameActive) return;
-                    
-                    score -= 5;
-                    wrongClicks++;
-                    scoreDisplay.textContent = score;
-                    
-                    createParticle('-5', e.clientX, e.clientY, 'penalty');
-                    
-                    target.remove();
-                };
-            }
-            
-            gameArea.appendChild(target);
-            
-            // Rimuovi il target dopo 2.5 secondi se non cliccato
-            setTimeout(() => {
-                if (target.parentNode) {
-                    target.remove();
-                }
-            }, 2500);
+  <script>
+    let score = 0;
+    let timeLeft = 45;
+    let gameActive = false;
+    let targetInterval, timerInterval;
+    let correctClicks = 0, wrongClicks = 0;
+    let combo = 1, bestCombo = 1;
+
+    const gameArea = document.getElementById('gameArea');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const startButton = document.getElementById('startButton');
+    const gameOver = document.getElementById('gameOver');
+    const finalScore = document.getElementById('finalScore');
+    const accuracy = document.getElementById('accuracy');
+    const funMsg = document.getElementById('funMsg');
+    const comboDisplay = document.getElementById('combo');
+
+    const distractorColors = ['#3498db','#e74c3c','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22'];
+
+    // WebAudio: suonini divertenti
+    function beep(freq=880, ms=120, type='sine'){
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = type; o.frequency.value = freq;
+        o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.12, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + ms/1000);
+        o.start(); o.stop(ctx.currentTime + ms/1000 + 0.02);
+      }catch(e){ /* niente suono se non supportato */ }
+    }
+
+    function createTarget(){
+      if(!gameActive) return;
+
+      const target = document.createElement('div');
+      target.className = 'target';
+      const isCorrect = Math.random() < 0.3;
+
+      const size = Math.random() * 70 + 100; // 100–170px per vedere bene Paola
+      const maxX = gameArea.clientWidth - size;
+      const maxY = gameArea.clientHeight - size;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+
+      target.style.width = size + 'px';
+      target.style.height = size + 'px';
+      target.style.left = x + 'px';
+      target.style.top = y + 'px';
+
+      if(isCorrect){
+        // Paola (bersaglio giusto)
+        target.classList.add('heart');
+        target.style.backgroundImage = "url('./images/paola.png')";
+        target.style.backgroundSize = "cover";
+        target.style.backgroundPosition = "center";
+        target.textContent = '';
+
+        target.onclick = function(e){
+          if(!gameActive) return;
+          score += 10;
+          correctClicks++;
+          combo = Math.min(combo + 1, 999);
+          bestCombo = Math.max(bestCombo, combo);
+          scoreDisplay.textContent = score;
+          comboDisplay.textContent = 'x' + combo;
+
+          createParticle('+10', e.clientX, e.clientY, 'bonus');
+          heartBurst(e.clientX, e.clientY, 10);
+          beep(920, 120, 'triangle');
+
+          target.remove();
+        };
+      }else{
+        // Cerchi distrattori
+        target.classList.add('circle');
+        const color = distractorColors[Math.floor(Math.random()*distractorColors.length)];
+        target.style.background = color;
+
+        target.onclick = function(e){
+          if(!gameActive) return;
+          score -= 5;
+          wrongClicks++;
+          combo = 1; // reset combo
+          scoreDisplay.textContent = score;
+          comboDisplay.textContent = 'x' + combo;
+
+          createParticle('-5', e.clientX, e.clientY, 'penalty');
+          beep(220, 140, 'sawtooth');
+
+          target.remove();
+        };
+      }
+
+      gameArea.appendChild(target);
+
+      // Despawn dopo 2.5s
+      setTimeout(()=>{ if(target.parentNode){ target.remove(); } }, 2500);
+    }
+
+    function createParticle(text, x, y, type){
+      const p = document.createElement('div');
+      p.className = 'particles ' + type;
+      p.textContent = text;
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      document.body.appendChild(p);
+      setTimeout(()=> p.remove(), 1000);
+
+      // Messaggi combo divertenti
+      if(type === 'bonus' && combo >= 2){
+        const msgs = {
+          2: 'Combo x2! 🤩',
+          3: 'Combo x3! BOOM 💥',
+          4: 'Combo x4! LEGGENDA 😎',
+          5: 'Combo x5! PAOLA APPROVA 💘'
+        };
+        const label = msgs[Math.min(combo,5)];
+        if(label){
+          const p2 = document.createElement('div');
+          p2.className = 'particles bonus';
+          p2.textContent = label;
+          p2.style.left = (x+12) + 'px';
+          p2.style.top = (y-18) + 'px';
+          document.body.appendChild(p2);
+          setTimeout(()=> p2.remove(), 1000);
         }
+      }
+    }
 
-        function createParticle(text, x, y, type) {
-            const particle = document.createElement('div');
-            particle.className = 'particles ' + type;
-            particle.textContent = text;
-            particle.style.left = x + 'px';
-            particle.style.top = y + 'px';
-            document.body.appendChild(particle);
-            
-            setTimeout(() => particle.remove(), 1000);
-        }
+    // Esplosione di cuori ❤️
+    function heartBurst(x, y, n=8){
+      for(let i=0;i<n;i++){
+        const h = document.createElement('div');
+        h.className = 'heart-spark';
+        h.textContent = '💖';
+        const angle = (Math.PI*2) * (i/n);
+        const r = 60 + Math.random()*30;
+        const dx = Math.cos(angle)*r;
+        const dy = Math.sin(angle)*r * 0.7;
+        h.style.setProperty('--dx', dx + 'px');
+        h.style.setProperty('--dy', dy + 'px');
+        h.style.left = x + 'px';
+        h.style.top = y + 'px';
+        document.body.appendChild(h);
+        setTimeout(()=> h.remove(), 700);
+      }
+    }
 
-        function startGame() {
-            score = 0;
-            timeLeft = 45;
-            gameActive = true;
-            correctClicks = 0;
-            wrongClicks = 0;
-            
-            scoreDisplay.textContent = score;
-            timerDisplay.textContent = timeLeft;
-            startButton.disabled = true;
-            gameOver.style.display = 'none';
-            gameArea.innerHTML = '';
-            
-            // Crea target ogni 700ms
-            targetInterval = setInterval(createTarget, 700);
-            
-            // Timer countdown
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = timeLeft;
-                
-                if (timeLeft <= 0) {
-                    endGame();
-                }
-            }, 1000);
-        }
+    function startGame(){
+      score = 0; timeLeft = 45; gameActive = true;
+      correctClicks = 0; wrongClicks = 0; combo = 1; bestCombo = 1;
+      scoreDisplay.textContent = score; timerDisplay.textContent = timeLeft; comboDisplay.textContent = 'x1';
+      startButton.disabled = true; gameOver.style.display = 'none'; gameArea.innerHTML = '';
 
-        function endGame() {
-            gameActive = false;
-            clearInterval(targetInterval);
-            clearInterval(timerInterval);
-            
-            gameArea.innerHTML = '';
-            finalScore.textContent = score;
-            
-            const totalClicks = correctClicks + wrongClicks;
-            const accuracyPercent = totalClicks > 0 ? Math.round((correctClicks / totalClicks) * 100) : 0;
-            accuracy.textContent = `Precisione: ${accuracyPercent}% (${correctClicks} corretti, ${wrongClicks} sbagliati)`;
-            
-            gameOver.style.display = 'block';
-            startButton.disabled = false;
-        }
+      targetInterval = setInterval(createTarget, 700);
+      timerInterval = setInterval(()=>{
+        timeLeft--; timerDisplay.textContent = timeLeft;
+        if(timeLeft <= 0){ endGame(); }
+      }, 1000);
+    }
 
-        startButton.addEventListener('click', startGame);
-    </script>
+    function endGame(){
+      gameActive = false;
+      clearInterval(targetInterval);
+      clearInterval(timerInterval);
+      gameArea.innerHTML = '';
+      finalScore.textContent = score;
+
+      const totalClicks = correctClicks + wrongClicks;
+      const accuracyPercent = totalClicks > 0 ? Math.round((correctClicks/totalClicks)*100) : 0;
+      accuracy.textContent = `Precisione: ${accuracyPercent}% (${correctClicks} giusti, ${wrongClicks} sbagliati) • Combo max: x${bestCombo}`;
+
+      // Messaggio simpatico in base al punteggio
+      let msg = 'Bravo/a! Paola ride ancora 😜';
+      if(score >= 150) msg = 'PAOLA FAN CLUB PRESIDENTE! 👑';
+      else if(score >= 100) msg = 'Sei un/a Paola Hunter professionista! 🏆';
+      else if(score >= 60) msg = 'Ottimo! Paola ti ha notato 👀';
+      else if(score <= 0) msg = 'Ehm… Paola è scappata 🤣';
+
+      funMsg.textContent = msg;
+
+      gameOver.style.display = 'block';
+      startButton.disabled = false;
+    }
+
+    startButton.addEventListener('click', startGame);
+  </script>
 </body>
 </html>
